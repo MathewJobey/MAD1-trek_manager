@@ -23,9 +23,13 @@ def login():
         return redirect_user_by_role(current_user.role)
 
     if request.method=='POST': #after user inputs username and pass; 4 CHECKS
-        username=request.form.get('username')
-        password=request.form.get('password')
-
+        username=request.form.get('username','').strip()
+        password=request.form.get('password','').strip()
+        #CHECK IF FIELDS ARE BLANK else leads to unnecessary db searching
+        if not username or not password:
+            flash('Please fill both username and password.','danger')
+            return redirect(url_for('auth.login'))
+        
         user=User.query.filter_by(username=username).first()
 
         if not user or not check_password_hash(user.password_hash, password):
@@ -50,10 +54,14 @@ def login():
 @auth_bp.route('/register/user', methods=['GET','POST'])
 def register_user():
     if request.method=='POST':#user types in for registering
-        username=request.form.get('username')
-        email=request.form.get('email')
-        password=request.form.get('password')
-
+        username=request.form.get('username','').strip()
+        email=request.form.get('email','').strip()
+        password=request.form.get('password','').strip()
+        #CHECK IF FIELDS ARE BLANK
+        if not username or not email or not password:
+            flash('All fields are mandatory.','danger')
+            return redirect(url_for('auth.register_user'))
+        
         #USERNAME+EMAIL CHECKS
 
         #1. checking if username is taken
@@ -78,33 +86,37 @@ def register_user():
     return render_template('register_user.html')
 
 #STAFF REGISTERATION
-@auth_bp.route('register/staff',methods=['GET','POST'])
+@auth_bp.route('/register/staff',methods=['GET','POST'])
 def register_staff():
-    if request.method=='POST':#staff tries in for registering
-            username=request.form.get('username')
-            email=request.form.get('email')
-            password=request.form.get('password')
+    if request.method=='POST':#staff tries registering
+        username=request.form.get('username','').strip()
+        email=request.form.get('email','').strip()
+        password=request.form.get('password','').strip()
+        #CHECK IF FIELDS ARE BLANK
+        if not username or not email or not password:
+            flash('All fields are mandatory.','danger')
+            return redirect(url_for('auth.register_staff'))
 
-            #USERNAME+EMAIL CHECKS
+        #USERNAME+EMAIL CHECKS
     
-            #1. checking if username is taken
-            if User.query.filter_by(username=username).first():
-                flash('Username already taken.','danger')
-                return redirect(url_for('auth.register_staff'))
+        #1. checking if username is taken
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken.','danger')                
+            return redirect(url_for('auth.register_staff'))
     
-            #2. checking if email already used
-            if User.query.filter_by(email=email).first():
-                flash('Email already registered.','danger')
-                return redirect(url_for('auth.register_staff'))
+        #2. checking if email already used
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.','danger')
+            return redirect(url_for('auth.register_staff'))
 
         #SAVE USER TO DB
-            hashed_password=generate_password_hash(password,'scrypt')
-            new_staff=User(username=username,email=email,password_hash=hashed_password,role='staff',is_approved=False) #isapproved differs for trekker nd staff
-            db.session.add(new_staff)
-            db.session.commit()    
+        hashed_password=generate_password_hash(password,'scrypt')
+        new_staff=User(username=username,email=email,password_hash=hashed_password,role='staff',is_approved=False) #isapproved differs for trekker nd staff
+        db.session.add(new_staff)
+        db.session.commit()    
 
-            flash('Staff registeration submitted. Please wait until Admin approves...', 'info')
-            return redirect(url_for('auth.login'))
+        flash('Staff registeration submitted. Please wait until Admin approves...', 'info')
+        return redirect(url_for('auth.login'))
         
     return render_template('register_staff.html')
 
