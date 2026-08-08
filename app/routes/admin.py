@@ -32,3 +32,48 @@ def dashboard():
 
     return render_template('admin/dashboard.html', pending_staff=pending_staff,users=all_users,treks=all_treks,bookings=all_bookings)
 
+#1. APPROVE STAFF
+@admin_bp.route('/approve-staff/<int: user_id>')
+@login_required
+@admin_required
+def approve_staff(user_id):
+
+    #check for staff id if exists
+    user=User.query.get_or_404(user_id)
+
+    user.is_approved=True
+    db.session.commit()
+    flash(f'Staff: {user.username} approved successfully.','success')
+    return redirect(url_for('admin.dashboard'))
+
+#2. REJECT STAFF
+@admin_bp.route('/reject-staff/<int: user_id>')
+@login_required
+@admin_required
+def reject_staff(user_id):
+
+    #check for staff id if exists
+    user=User.query.get_or_404(user_id)
+
+    user.is_approved=False
+    db.session.commit()
+    flash(f'Staff: {user.username} rejected and removed.','info')
+    return redirect(url_for('admin.dashboard'))
+
+#3. BLACKLIST USER
+@admin_bp.route('/toggle-blacklist/<int: user_id>')
+@login_required
+@admin_required
+def toggle_blacklist(user_id):
+
+    #check for staff id if exists
+    user=User.query.get_or_404(user_id)
+
+    #ON AND OFF blacklist
+    user.is_blacklisted=not user.is_blacklisted
+    db.session.commit()
+
+    flash(f'User: {user.username} has been {user.status}.','warning' if user.is_blacklisted else 'success')
+    return redirect(url_for('admin.dashboard'))
+
+
