@@ -16,7 +16,7 @@ def redirect_user_by_role(role):
     else:
         return redirect(url_for('user.dashboard'))
 
-#User trying to Login
+#USER LOGIN
 @auth_bp.route('/login', methods=['GET','POST'])
 def login():
     if current_user.is_authenticated: #if already logged in directly redirect to the dashboard
@@ -45,3 +45,35 @@ def login():
         return redirect_user_by_role(user.role)
 
     return render_template('login.html')
+
+#TREKKER REGISTERATION
+@auth_bp.route('/register/user', methods=['GET','POST'])
+def register_user():
+    if request.method=='POST':#user types in for registering
+        username=request.form.get('username')
+        email=request.form.get('email')
+        password=request.form.get('password')
+
+        #USERNAME+EMAIL CHECKS
+
+        #1. checking if username is taken
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken.','danger')
+            return redirect(url_for('auth.register_user'))
+
+        #2. checking if email already used
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered.','danger')
+            return redirect(url_for('auth.register_user'))
+
+        #SAVE USER TO DB
+        hashed_password=generate_password_hash(password,'scrypt')
+        new_user=User(username=username,email=email,password_hash=hashed_password,role='user')
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash('Registration successful! Please log in.', 'success')
+        return redirect(url_for('auth.login'))
+
+    return render_template('register_user.html')
+
