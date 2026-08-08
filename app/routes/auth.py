@@ -77,3 +77,41 @@ def register_user():
 
     return render_template('register_user.html')
 
+#STAFF REGISTERATION
+@auth_bp.route('register/staff',methods=['GET','POST'])
+def register_staff():
+    if request.method=='POST':#staff tries in for registering
+            username=request.form.get('username')
+            email=request.form.get('email')
+            password=request.form.get('password')
+
+            #USERNAME+EMAIL CHECKS
+    
+            #1. checking if username is taken
+            if User.query.filter_by(username=username).first():
+                flash('Username already taken.','danger')
+                return redirect(url_for('auth.register_staff'))
+    
+            #2. checking if email already used
+            if User.query.filter_by(email=email).first():
+                flash('Email already registered.','danger')
+                return redirect(url_for('auth.register_staff'))
+
+        #SAVE USER TO DB
+            hashed_password=generate_password_hash(password,'scrypt')
+            new_staff=User(username=username,email=email,password_hash=hashed_password,role='staff',is_approved=False) #isapproved differs for trekker nd staff
+            db.session.add(new_staff)
+            db.session.commit()    
+
+            flash('Staff registeration submitted. Please wait until Admin approves...', 'info')
+            return redirect(url_for('auth.login'))
+        
+    return render_template('register_staff.html')
+
+#USER LOGOUT
+@auth_bp.route('/logout')
+@login_required #flask decorator to check if person trying to logout is actually the person logging in
+def logout():
+    logout_user()#encrypted session cookie gets erased for that session and flask goes to anonymoususermixin 
+    flash('You have been logged out successfully.','info')
+    return redirect(url_for('auth.login'))
