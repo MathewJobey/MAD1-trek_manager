@@ -1,0 +1,300 @@
+openapi: 3.0.0
+info:
+  title: Trek Management System API
+  description: OpenAPI 3.0 specification mapping all server-side application endpoints across Admin, Staff, User, and Auth blueprints.
+  version: 1.0.0
+paths:
+  /login:
+    get:
+      summary: Login Page
+      responses:
+        '200':
+          description: Renders login form.
+    post:
+      summary: User Authentication
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login redirect to corresponding role dashboard.
+
+  /register/user:
+    get:
+      summary: Trekker Registration Page
+      responses:
+        '200':
+          description: Renders trekker registration form.
+    post:
+      summary: Register Trekker Account
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User created and redirected to login page.
+
+  /register/staff:
+    get:
+      summary: Staff Registration Page
+      responses:
+        '200':
+          description: Renders staff registration form.
+    post:
+      summary: Register Staff Account (Pending Approval)
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Staff account request submitted for Admin review.
+
+  /logout:
+    get:
+      summary: User Logout
+      responses:
+        '200':
+          description: Session ended and redirected to login page.
+
+  /treks:
+    get:
+      summary: Browse Trek Catalog
+      parameters:
+        - name: location
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: difficulty
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [Easy, Moderate, Hard]
+      responses:
+        '200':
+          description: Returns catalog HTML page with filtered treks.
+
+  /trek/{trek_id}:
+    get:
+      summary: Get Single Trek Details
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Returns single trek details view.
+
+  /trek/book/{trek_id}:
+    post:
+      summary: Book Trek Seats
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - seats_booked
+              properties:
+                seats_booked:
+                  type: integer
+      responses:
+        '200':
+          description: Booking confirmed and redirected to trekker dashboard.
+
+  /dashboard:
+    get:
+      summary: Trekker Dashboard
+      responses:
+        '200':
+          description: Displays user's active bookings and booking history.
+
+  /booking/cancel/{booking_id}:
+    post:
+      summary: Cancel Trek Reservation
+      parameters:
+        - name: booking_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Booking marked as Cancelled and seats added back to trek slots.
+
+  /admin/dashboard:
+    get:
+      summary: Admin Management Dashboard
+      responses:
+        '200':
+          description: Displays pending staff approvals, user lists, treks, and system bookings.
+
+  /admin/approve-staff/{user_id}:
+    get:
+      summary: Approve Staff Account
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Sets staff account approval state to True.
+
+  /admin/reject-staff/{user_id}:
+    get:
+      summary: Reject Staff Account
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Removes pending staff record from database.
+
+  /admin/toggle-blacklist/{user_id}:
+    get:
+      summary: Toggle Account Blacklist Status
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Toggles user blacklisted state between True and False.
+
+  /admin/trek/add:
+    get:
+      summary: Add Trek Page
+      responses:
+        '200':
+          description: Renders trek creation form with approved staff dropdown.
+    post:
+      summary: Create New Trek Package
+      responses:
+        '200':
+          description: Trek created and saved to database.
+
+  /admin/trek/edit/{trek_id}:
+    get:
+      summary: Edit Trek Page
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Renders pre-filled edit form.
+    post:
+      summary: Update Trek Details
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Updates trek record attributes in database.
+
+  /admin/trek/delete/{trek_id}:
+    get:
+      summary: Delete Trek Package
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Removes trek entry from database.
+
+  /staff/dashboard:
+    get:
+      summary: Staff Operations Dashboard
+      responses:
+        '200':
+          description: Displays assigned treks and active participant counts.
+
+  /staff/trek/status/{trek_id}:
+    post:
+      summary: Update Trek Status and Slots
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Updates operational status and slot count for assigned trek.
+
+  /staff/trek/{trek_id}/participants:
+    get:
+      summary: View Trek Participant Roster
+      parameters:
+        - name: trek_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Displays roster of active bookings for assigned trek.
