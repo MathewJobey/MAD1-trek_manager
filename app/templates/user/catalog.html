@@ -1,4 +1,57 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>Catalog</h2>
+<div class="my-4">
+    <h2 class="mb-3 fw-bold text-secondary">Explore Available Treks</h2>
+
+    <!-- Search and Filter Form -->
+    <form method="GET" action="{{ url_for('user.catalog') }}" class="row g-3 mb-4 bg-white p-3 rounded shadow-sm border">
+        <div class="col-md-5">
+            <input type="text" name="location" class="form-control" placeholder="Search location (e.g. Munnar)" value="{{ request.args.get('location', '') }}">
+        </div>
+        <div class="col-md-4">
+            <select name="difficulty" class="form-select">
+                <option value="">All Difficulties</option>
+                <option value="Easy" {% if request.args.get('difficulty') == 'Easy' %}selected{% endif %}>Easy</option>
+                <option value="Moderate" {% if request.args.get('difficulty') == 'Moderate' %}selected{% endif %}>Moderate</option>
+                <option value="Hard" {% if request.args.get('difficulty') == 'Hard' %}selected{% endif %}>Hard</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary w-100">Filter Treks</button>
+        </div>
+    </form>
+
+    <!-- Treks Grid List -->
+    <div class="row">
+        {% if treks %}
+            {% for trek in treks %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-dark">{{ trek.name }}</h5>
+                            <p class="card-text text-muted mb-2">📍 {{ trek.location }}</p>
+                            
+                            <div class="mb-3">
+                                <span class="badge bg-info text-dark">{{ trek.difficulty }}</span>
+                                <span class="badge bg-secondary">{{ trek.duration_days }} Days</span>
+                            </div>
+
+                            <p class="card-text">
+                                <strong>Available Slots:</strong> 
+                                <span class="badge bg-success fs-6">{{ trek.available_slots }}</span>
+                            </p>
+                            
+                            <a href="{{ url_for('user.trek_details', trek_id=trek.id) }}" class="btn btn-outline-primary btn-sm w-100 mt-2">View & Book</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted fs-5">No open treks found matching your search.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
