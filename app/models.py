@@ -56,6 +56,7 @@ class Booking(db.Model):
     id= db.Column(db.Integer, primary_key=True)
     user_id= db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     trek_id= db.Column(db.Integer, db.ForeignKey('treks.id'), nullable=False)
+    seats_booked = db.Column(db.Integer, nullable=False, default=1)
     booking_date= db.Column(db.DateTime, default=datetime.utcnow)
     status= db.Column(db.String(20), nullable=False, default='Booked')
 
@@ -65,4 +66,8 @@ class Booking(db.Model):
             "status IN ('Booked', 'Cancelled', 'Completed')", 
             name="check_booking_status"
         ),
-    )
+        db.CheckConstraint(
+            "seats_booked > 0", 
+            name="check_seats_booked_positive"
+        ),                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
+    )                                                               
