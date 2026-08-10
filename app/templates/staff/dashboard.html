@@ -2,9 +2,12 @@
 
 {% block content %}
 <div class="my-4">
-    <h2 class="fw-bold mb-4">Staff Dashboard</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Welcome, {{ current_user.username }}!</h2>
+        <a href="{{ url_for('staff.profile') }}" class="btn btn-outline-primary btn-sm">Edit Profile</a>
+    </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 mb-4">
         <div class="card-header bg-dark text-white fw-bold">My Assigned Treks</div>
         <div class="card-body">
             {% if trek_data %}
@@ -30,7 +33,6 @@
                                     <td>{{ item.trek.available_slots }}</td>
                                     <td><span class="badge bg-info text-dark">{{ item.trek.status }}</span></td>
                                     <td>
-                                        <!-- Inline status and slots update form -->
                                         <form method="POST" action="{{ url_for('staff.update_status', trek_id=item.trek.id) }}" class="d-flex gap-2">
                                             <select name="status" class="form-select form-select-sm" style="width: 110px;">
                                                 <option value="Open" {% if item.trek.status == 'Open' %}selected{% endif %}>Open</option>

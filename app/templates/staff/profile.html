@@ -1,81 +1,93 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <h2 class="fw-bold text-primary mb-4">Staff Profile</h2>
-
-            <!-- Staff Details Overview Card -->
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-dark text-white fw-bold">
-                    Profile Summary
+<div class="row justify-content-center my-4">
+    <div class="col-md-8">
+        <!-- Staff Overview & Assigned Treks Card -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-dark text-white fw-bold">
+                Staff Account Overview
+            </div>
+            <div class="card-body p-4">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Staff ID:</div>
+                    <div class="col-sm-8 fw-bold">#{{ current_user.id }}</div>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-sm-4 text-muted">Staff ID:</div>
-                        <div class="col-sm-8 fw-bold">#{{ current_user.id }}</div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Approval Status:</div>
+                    <div class="col-sm-8">
+                        {% if current_user.is_approved %}
+                            <span class="badge bg-success">Approved Staff</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pending Approval</span>
+                        {% endif %}
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 text-muted">Approval Status:</div>
-                        <div class="col-sm-8">
-                            {% if current_user.is_approved %}
-                                <span class="badge bg-success">Approved Staff</span>
-                            {% else %}
-                                <span class="badge bg-warning text-dark">Pending Approval</span>
-                            {% endif %}
-                        </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Account Status:</div>
+                    <div class="col-sm-8">
+                        {% if current_user.is_blacklisted %}
+                            <span class="badge bg-danger">Deactivated</span>
+                        {% else %}
+                            <span class="badge bg-success">Active</span>
+                        {% endif %}
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 text-muted">Account Status:</div>
-                        <div class="col-sm-8">
-                            {% if current_user.is_blacklisted %}
-                                <span class="badge bg-danger">Deactivated</span>
-                            {% else %}
-                                <span class="badge bg-success">Active</span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-sm-4 text-muted">Assigned Trek(s):</div>
-                        <div class="col-sm-8">
-                            {% if current_user.assigned_treks %}
-                                <ul class="list-group list-group-flush">
-                                    {% for trek in current_user.assigned_treks %}
-                                        <li class="list-group-item px-0 py-1">
-                                            🌄 <strong>{{ trek.name }}</strong> ({{ trek.location }}) - 
-                                            <span class="badge bg-info text-dark">{{ trek.status }}</span>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            {% else %}
-                                <span class="text-muted">No treks assigned currently.</span>
-                            {% endif %}
-                        </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted">Assigned Treks:</div>
+                    <div class="col-sm-8">
+                        {% if current_user.assigned_treks %}
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Trek Name</th>
+                                            <th>Location</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for trek in current_user.assigned_treks %}
+                                            <tr>
+                                                <td><strong>{{ trek.name }}</strong></td>
+                                                <td>{{ trek.location }}</td>
+                                                <td><span class="badge bg-info text-dark">{{ trek.status }}</span></td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <span class="text-muted">No treks assigned currently.</span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Edit Contact Details Card -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-light fw-bold">
-                    Update Contact Details
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('staff.profile') }}">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Name / Username</label>
-                            <input type="text" name="username" class="form-control" value="{{ current_user.username }}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Contact Email</label>
-                            <input type="email" name="email" class="form-control" value="{{ current_user.email }}" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary fw-bold">Save Changes</button>
-                    </form>
-                </div>
+        <!-- Edit Profile Form -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-bold">
+                Edit Profile Details
             </div>
+            <div class="card-body p-4">
+                <form method="POST" action="{{ url_for('staff.profile') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" value="{{ current_user.username }}" required>
+                    </div>
 
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

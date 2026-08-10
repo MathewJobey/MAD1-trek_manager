@@ -102,7 +102,7 @@ def view_participants(trek_id):
 
     return render_template('staff/participants.html', trek=trek, bookings=active_bookings)
 
-# 4. STAFF PROFILE (View Details & Edit Profile)
+# 4.STAFF PROFILE (View Details & Edit Profile)
 @staff_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 @staff_required
@@ -130,6 +130,6 @@ def profile():
         db.session.commit()
 
         flash('Profile updated successfully!', 'success')
-        return redirect(url_for('staff.profile'))
+        return redirect(url_for('staff.dashboard'))
 
     return render_template('staff/profile.html')
