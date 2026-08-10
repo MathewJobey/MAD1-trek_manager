@@ -2,7 +2,7 @@ from functools import wraps
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from app.models import Trek
+from app.models import Trek, Booking
 
 #STAFF BLUEPRINT
 staff_bp = Blueprint("staff", __name__, url_prefix='/staff')
@@ -33,7 +33,19 @@ def dashboard():
 
     #show treks assigned for the staff
     assigned_treks=Trek.query.filter_by(assigned_staff_id=current_user.id).all()
-    return render_template('staff/dashboard.html',treks=assigned_treks)
+    trek_data = []
+    for trek in assigned_treks:
+        # Sum up seats_booked for all active registrations
+        total_registered = sum(
+            b.seats_booked for b in trek.bookings if b.status != 'Cancelled'
+        )
+        
+        trek_data.append({
+            'trek': trek,
+            'registered_count': total_registered
+        })
+
+    return render_template('staff/dashboard.html', trek_data=trek_data)
 
 #EDIT TREK STATUS
 @staff_bp.route('/trek/status/<int:trek_id>',methods=['POST'])
@@ -48,14 +60,44 @@ def update_status(trek_id):
         flash('Unauthorized Access. You can only edit treks that are assigned to you.','danger')
         return redirect(url_for('staff.dashboard'))
 
-    #UPDATE status
+    #UPDATE status and get total available slots
     new_status=request.form.get('status','').strip()
+    available_slots = request.form.get('available_slots', '').strip()
+    
     #check if status is in constraints
     if new_status in ['Open','Closed','Completed']:
         trek.status=new_status
-        db.session.commit()
-        flash(f'Status for Trek: "{trek.name}" updated to "{new_status}".', 'success')
     else:
         flash('Invalid status selected.','danger')
+        return redirect(url_for('staff.dashboard'))
 
+    if available_slots:
+        try:
+            slots_int = int(available_slots)
+            if slots_int >= 0:
+                trek.available_slots = slots_int
+            else:
+                flash('Available slots cannot be negative.', 'danger')
+                return redirect(url_for('staff.dashboard'))
+        except ValueError:
+            flash('Available slots must be a valid number.', 'danger')
+            return redirect(url_for('staff.dashboard'))
+
+    db.session.commit()
+    flash(f'Trek: "{trek.name}" updated and Status updated to "{new_status}".', 'success') #status and available slots
     return redirect(url_for('staff.dashboard'))
+
+# 3. VIEW PARTICIPANT LIST FOR A TREK
+@staff_bp.route('/trek/<int:trek_id>/participants')
+@login_required
+@staff_required
+def view_participants(trek_id):
+    trek = Trek.query.get_or_404(trek_id)
+
+    if trek.assigned_staff_id != current_user.id:
+        flash('Unauthorized Access. You can only view participants for your assigned treks.', 'danger')
+        return redirect(url_for('staff.dashboard'))
+
+    active_bookings = Booking.query.filter_by(trek_id=trek.id).filter(Booking.status != 'Cancelled').all() #multiple seats booked by single trekker
+
+    return render_template('staff/participants.html', trek=trek, bookings=active_bookings)
