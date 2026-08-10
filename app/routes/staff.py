@@ -15,7 +15,7 @@ def staff_required(f):
         if not current_user.is_authenticated or current_user.role!='staff':
             flash('Access Denied. Staff Privilege required.','danger')
             return redirect(url_for('auth.login'))
-        if not current_user.is_apporved:
+        if not current_user.is_approved:
             flash('Account pending for approval. Please contact Admin.','warning')
             return redirect(url_for('auth.login'))
         if current_user.is_blacklisted:
@@ -24,3 +24,38 @@ def staff_required(f):
 
         return f(*args,**kwargs)
     return decorator_function
+
+#STAFF DASHBOARD
+@staff_bp.route('/dashboard')
+@login_required
+@staff_required
+def dashboard():
+
+    #show treks assigned for the staff
+    assigned_treks=Trek.query.filter_by(assigned_staff_id=current_user.id).all()
+    return render_template('staff/dashboard.html',treks=assigned_treks)
+
+#EDIT TREK STATUS
+@staff_bp.route('/trek/status/<int:trek_id>',methods=['POST'])
+@login_required
+@staff_required
+def update_status(trek_id):
+    #check if trek exist
+    trek=Trek.query.get_or_404(trek_id)
+
+    #SECURITY check to make sure the staff is editing ONLY the trek thats assigned to them
+    if trek.assigned_staff_id!=current_user.id:
+        flash('Unauthorized Access. You can only edit treks that are assigned to you.','danger')
+        return redirect(url_for('staff.dashboard'))
+
+    #UPDATE status
+    new_status=request.form.get('status','').strip()
+    #check if status is in constraints
+    if new_status in ['Open','Closed','Completed']:
+        trek.status=new_status
+        db.session.commit()
+        flash(f'Status for Trek: "{trek.name}" updated to "{new_status}".', 'success')
+    else:
+        flash('Invalid status selected.','danger')
+
+    return redirect(url_for('staff.dashboard'))
