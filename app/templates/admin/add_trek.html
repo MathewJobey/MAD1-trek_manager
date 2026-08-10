@@ -1,4 +1,72 @@
 {% extends 'base.html' %}
+
 {% block content %}
-<h2>Add Trek</h2>
+<div class="row justify-content-center my-4">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="fw-bold mb-4">Create New Trek Package</h3>
+
+                <form method="POST" action="{{ url_for('admin.add_trek') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Trek Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Anamudi Peak Trek" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Location</label>
+                        <input type="text" name="location" class="form-control" placeholder="e.g. Munnar, Kerala" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Difficulty Level</label>
+                            <select name="difficulty" class="form-select" required>
+                                <option value="Easy">Easy</option>
+                                <option value="Moderate" selected>Moderate</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Duration (Days)</label>
+                            <input type="number" name="duration_days" class="form-control" min="1" value="2" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Available Slots</label>
+                            <input type="number" name="available_slots" class="form-control" min="1" value="15" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Assign Staff Guide</label>
+                            <select name="assigned_staff_id" class="form-select">
+                                <option value="">-- Select Staff (Optional) --</option>
+                                {% for staff in staff_members %}
+                                    <option value="{{ staff.id }}">{{ staff.username }} ({{ staff.email }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Start Date (Optional)</label>
+                            <input type="date" name="start_date" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">End Date (Optional)</label>
+                            <input type="date" name="end_date" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Create Trek</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
