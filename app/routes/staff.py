@@ -2,7 +2,7 @@ from functools import wraps
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from app.models import Trek, Booking
+from app.models import User,Trek, Booking
 
 #STAFF BLUEPRINT
 staff_bp = Blueprint("staff", __name__, url_prefix='/staff')
@@ -101,3 +101,35 @@ def view_participants(trek_id):
     active_bookings = Booking.query.filter_by(trek_id=trek.id).filter(Booking.status != 'Cancelled').all() #multiple seats booked by single trekker
 
     return render_template('staff/participants.html', trek=trek, bookings=active_bookings)
+
+# 4. STAFF PROFILE (View Details & Edit Profile)
+@staff_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+@staff_required
+def profile():
+    if request.method == 'POST':
+        new_username = request.form.get('username', '').strip()
+        new_email = request.form.get('email', '').strip()
+
+        if not new_username or not new_email:
+            flash('Username and email fields cannot be empty.', 'danger')
+            return redirect(url_for('staff.profile'))
+
+        # Check if new username or email is already registered to another user account
+        existing_user = User.query.filter(
+            (User.username == new_username) | (User.email == new_email),
+            User.id != current_user.id
+        ).first()
+
+        if existing_user:
+            flash('That Username or Email is already in use by another account.', 'danger')
+            return redirect(url_for('staff.profile'))
+
+        current_user.username = new_username
+        current_user.email = new_email
+        db.session.commit()
+
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('staff.profile'))
+
+    return render_template('staff/profile.html')
